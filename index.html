@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FasalSetu" />
+  <meta name="theme-color" content="#0a0f1d" />
+  <title>FasalSetu AI — Mandi Mobile System</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <script src="ort.min.js"></script>
+</head>
+<body>
+
+  <!-- MOBILE APP HEADER -->
+  <header class="mobile-header">
+    <div class="brand-wrapper">
+      <div class="brand-logo-badge">🌾</div>
+      <div class="brand-text">
+        <h1>FasalSetu <span>AI</span></h1>
+        <p id="lbl-tagline">Mandi Decision System · DTU</p>
+      </div>
+    </div>
+    <div class="header-controls">
+      <div class="status-dot" id="net-status" title="Online"></div>
+      <button class="lang-btn" id="lang-toggle-btn" onclick="toggleLanguage()">हिंदी</button>
+    </div>
+  </header>
+
+  <!-- SCREEN 1: AI CAMERA SCANNER & QUALITY CHECK -->
+  <main id="screen-scan" class="screen active">
+    <div class="card">
+      <div class="card-title">
+        <span>📸</span> <span id="lbl-scanner-title">Produce Quality Scanner (Tomatoes)</span>
+      </div>
+      
+      <!-- Camera Preview Box -->
+      <div class="camera-container" id="camera-box">
+        <video id="camera-video" autoplay playsinline muted style="display:none;"></video>
+        <img id="captured-image-preview" src="" alt="Preview" style="display:none;" />
+        
+        <div id="camera-placeholder" style="text-align: center; padding: 20px;">
+          <div style="font-size: 40px; margin-bottom: 8px;">📷</div>
+          <p style="font-size: 13px; color: var(--text-muted);" id="lbl-camera-hint">Ready to inspect crate</p>
+          <span style="font-size: 11px; color: var(--primary);">Tap capture or upload below</span>
+        </div>
+
+        <div class="camera-reticle" id="reticle">
+          <div class="reticle-top">
+            <div class="reticle-corner tl"></div>
+            <div class="reticle-corner tr"></div>
+          </div>
+          <div class="reticle-scan-line"></div>
+          <div class="reticle-bottom">
+            <div class="reticle-corner bl"></div>
+            <div class="reticle-corner br"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="camera-actions">
+        <label for="camera-file-input" class="btn-icon">
+          <span>📁</span>
+          <span id="lbl-upload">Upload</span>
+        </label>
+        <input type="file" id="camera-file-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageUpload(event)" />
+
+        <div class="btn-shutter" onclick="triggerCapture()">
+          <div class="btn-shutter-inner"></div>
+        </div>
+
+        <button class="btn-icon" onclick="startLiveCamera()">
+          <span>🔴</span>
+          <span id="lbl-live-cam">Live Cam</span>
+        </button>
+      </div>
+
+      <!-- AI VERDICT RESULT -->
+      <div class="verdict-box" id="verdict-card">
+        <div class="verdict-header">
+          <div class="verdict-badge" id="verdict-badge">--</div>
+          <div class="confidence-rate" id="verdict-conf">0% Conf.</div>
+        </div>
+
+        <div id="safety-shield-box" class="safety-shield-alert" style="display: none;">
+          <span>🛡️</span>
+          <span id="safety-shield-text">SAFETY LOCKOUT: Subgrade Produce diverted from food supply!</span>
+        </div>
+
+        <div class="metrics-bar-group">
+          <div>
+            <div class="metric-row">
+              <span id="lbl-fresh-score">Freshness & Firmness</span>
+              <span id="val-fresh-score">88%</span>
+            </div>
+            <div class="metric-bar-bg">
+              <div class="metric-bar-fill" id="bar-fresh" style="width: 88%;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="metric-row">
+              <span id="lbl-defect-score">Visible Defects / Rot</span>
+              <span id="val-defect-score">12%</span>
+            </div>
+            <div class="metric-bar-bg">
+              <div class="metric-bar-fill amber" id="bar-defect" style="width: 12%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BATCH REGISTRATION METADATA -->
+      <div class="field-grid">
+        <div class="input-group">
+          <label class="input-label" id="lbl-farmer-name">Farmer Name / ID</label>
+          <input type="text" id="input-farmer" class="input-field" value="Ramesh Kumar (F-102)" />
+        </div>
+        <div class="input-group">
+          <label class="input-label" id="lbl-lot-weight">Lot Weight (kg)</label>
+          <input type="number" id="input-weight" class="input-field" value="80" />
+        </div>
+      </div>
+
+      <div class="field-grid">
+        <div class="input-group">
+          <label class="input-label" id="lbl-harvest-age">Harvest Age (Hours)</label>
+          <input type="number" id="input-age" class="input-field" value="18" />
+        </div>
+        <div class="input-group">
+          <label class="input-label" id="lbl-variety">Variety</label>
+          <select id="input-variety" class="input-field">
+            <option value="Hybrid Tomato" selected>Hybrid Tomato (Sahu)</option>
+            <option value="Desi Tomato">Desi Tomato</option>
+            <option value="Cherry Tomato">Cherry Tomato</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="registerCurrentBatch()">
+        <span>⚡</span> <span id="lbl-btn-register">Confirm & Queue Produce</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- SCREEN 2: MANDI URGENCY QUEUE (P0 / P1 / P2) -->
+  <main id="screen-urgency" class="screen">
+    <div class="card">
+      <div class="card-title">
+        <span>⚡</span> <span id="lbl-urgency-title">Perishability Priority Queue</span>
+      </div>
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;" id="lbl-urgency-sub">
+        Batches dynamically sorted by spoilage rate instead of First-In First-Out.
+      </p>
+
+      <div class="queue-filter">
+        <button class="filter-chip active" onclick="filterQueue('all', this)" id="chip-all">All (4)</button>
+        <button class="filter-chip" onclick="filterQueue('p0', this)" id="chip-p0">⚡ P0 Urgent (<12h)</button>
+        <button class="filter-chip" onclick="filterQueue('p1', this)" id="chip-p1">🟡 P1 Monitor</button>
+        <button class="filter-chip" onclick="filterQueue('p2', this)" id="chip-p2">🟢 P2 Stable</button>
+      </div>
+
+      <div id="queue-list-container">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+  </main>
+
+  <!-- SCREEN 3: SMART TRUCK POOLING -->
+  <main id="screen-pooling" class="screen">
+    <div class="card">
+      <div class="card-title">
+        <span>🚛</span> <span id="lbl-pooling-title">Smart Aggregation & Pooling</span>
+      </div>
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;" id="lbl-pooling-sub">
+        Bundle compatible farmer lots into one shared pickup to cut transport costs by +₹200/farmer.
+      </p>
+
+      <!-- Truck Gauge -->
+      <div class="truck-capacity-card">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+          <span id="lbl-truck-dest">Destination: Azadpur Mandi / Puree Plant</span>
+          <span id="truck-payload-text">320 / 500 kg</span>
+        </div>
+        <div class="truck-graphic">
+          <div class="truck-fill" id="truck-fill-bar" style="width: 64%;">64% Full</div>
+        </div>
+        <div class="truck-stats-grid">
+          <div class="ts-item">
+            <div class="num" id="pool-farmers-count">3</div>
+            <div class="lbl" id="lbl-pooled-farmers">Farmers Pooled</div>
+          </div>
+          <div class="ts-item">
+            <div class="num" id="pool-est-savings">₹480</div>
+            <div class="lbl" id="lbl-shared-savings">Transport Saved</div>
+          </div>
+          <div class="ts-item">
+            <div class="num" id="pool-co2-saved">18 kg</div>
+            <div class="lbl" id="lbl-co2">CO2 Avoided</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="savings-banner">
+        <div>
+          <h3 id="lbl-bonus-head">+₹200 Modeled Profit / Farmer</h3>
+          <p id="lbl-bonus-sub">vs Independent separate farmer pickups</p>
+        </div>
+        <span style="font-size: 26px;">💰</span>
+      </div>
+
+      <div class="card-title" style="font-size: 13px;">
+        <span id="lbl-select-lots">Select Lots for Shared Dispatch:</span>
+      </div>
+      <div id="pooling-selection-list">
+        <!-- Rendered by app.js -->
+      </div>
+
+      <button class="btn-primary" onclick="dispatchPooledTrip()">
+        <span>🚀</span> <span id="lbl-dispatch-btn">Confirm Shared Dispatch</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- SCREEN 4: IMPACT & EARNINGS AUDIT -->
+  <main id="screen-impact" class="screen">
+    <div class="card">
+      <div class="card-title">
+        <span>📊</span> <span id="lbl-audit-title">SEVA FIRST Impact Dashboard</span>
+      </div>
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px;" id="lbl-audit-sub">
+        Measured produce recovered, farmer value created, and zero-landfill diversion.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 14px;">
+          <div style="font-size: 11px; color: var(--text-muted);" id="lbl-total-recovered">Recovered Produce</div>
+          <div style="font-size: 22px; font-weight: 800; color: var(--primary); margin-top: 4px;">4,280 kg</div>
+          <div style="font-size: 10px; color: #34d399; margin-top: 2px;">+18.4% vs unmanaged mandi</div>
+        </div>
+
+        <div style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: var(--radius-md); padding: 14px;">
+          <div style="font-size: 11px; color: var(--text-muted);" id="lbl-net-added">Farmer Net Value</div>
+          <div style="font-size: 22px; font-weight: 800; color: #60a5fa; margin-top: 4px;">₹68,400</div>
+          <div style="font-size: 10px; color: #93c5fd; margin-top: 2px;">After shared transport</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 14px;">
+          <div style="font-size: 11px; color: var(--text-muted);" id="lbl-biogas-units">Bio-Recovery Diversion</div>
+          <div style="font-size: 22px; font-weight: 800; color: #fbbf24; margin-top: 4px;">640 kg</div>
+          <div style="font-size: 10px; color: #fde68a; margin-top: 2px;">Zero sent to landfill</div>
+        </div>
+
+        <div style="background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: var(--radius-md); padding: 14px;">
+          <div style="font-size: 11px; color: var(--text-muted);" id="lbl-food-safety-stat">Safety Shield Check</div>
+          <div style="font-size: 22px; font-weight: 800; color: #c084fc; margin-top: 4px;">100%</div>
+          <div style="font-size: 10px; color: #e9d5ff; margin-top: 2px;">Subgrade produce locked</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- BOTTOM MOBILE NAVIGATION BAR -->
+  <nav class="mobile-nav">
+    <div class="nav-tab active" onclick="switchScreen('screen-scan', this)">
+      <span class="tab-icon">📸</span>
+      <span id="tab-scan">AI Scan</span>
+    </div>
+    <div class="nav-tab" onclick="switchScreen('screen-urgency', this)">
+      <span class="tab-icon">⚡</span>
+      <span id="tab-urgency">Urgency</span>
+    </div>
+    <div class="nav-tab" onclick="switchScreen('screen-pooling', this)">
+      <span class="tab-icon">🚛</span>
+      <span id="tab-pooling">Pooling</span>
+    </div>
+    <div class="nav-tab" onclick="switchScreen('screen-impact', this)">
+      <span class="tab-icon">📊</span>
+      <span id="tab-impact">Impact</span>
+    </div>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>

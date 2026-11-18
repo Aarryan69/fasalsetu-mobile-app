@@ -1,0 +1,23 @@
+{
+  "name": "FasalSetu AI — Mandi Decision System",
+  "short_name": "FasalSetu",
+  "description": "AI-assisted produce prioritization, defect grading and recovery pooling for Indian mandis.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#090d16",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

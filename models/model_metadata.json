@@ -1,0 +1,30 @@
+{
+  "model_name": "FasalSetu-MobileNetV3-TomatoQuality",
+  "input_resolution": [
+    224,
+    224
+  ],
+  "channels": 3,
+  "normalization": {
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "classes": [
+    "grade_a_fresh",
+    "grade_b_processing",
+    "subgrade_damaged"
+  ],
+  "safety_shield_rule": {
+    "lockout_threshold_confidence": 0.85,
+    "subgrade_class_id": 2,
+    "action": "divert_to_biorecovery"
+  }
+}
